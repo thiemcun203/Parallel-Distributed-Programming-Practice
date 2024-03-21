@@ -20,17 +20,27 @@ int main(){
     }
 
     // Paralle segment by row
-    omp_set_num_threads(n);
-    int threadID;
-    #pragma omp parallel private(threadID, i)
+    omp_set_num_threads(2);
+    int threadID, start, end;
+    #pragma omp parallel private(threadID, start, end,  i, j, k)
     {
-        threadID = omp_get_thread_num();
-        for (i = 0; i<p; i++){
-            C[threadID][i] = 0;
-            for (j = 0; j < n; j++){
-                C[threadID][i] += A[threadID][j] * B[j][i];
+        int NT = omp_get_num_threads();
+        int Ms = m/NT;
+        threadID = omp_get_thread_num(); // divide threads then solve at each level of for-s
+        start = threadID*Ms; 
+        end = start+Ms; 
+        if (end < m && threadID == NT-1){
+            end = m;
+        }
+        for (i=start; i < end; i++){
+            for (k = 0; k < p; k++){
+                C[i][k] = 0;
+                for (j = 0; j < n; j++){
+                    C[i][k] += A[i][j] * B[j][k];
+                }
             }
         }
+
     }
 
     // Older style
